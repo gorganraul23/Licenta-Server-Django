@@ -1,4 +1,20 @@
+
 from django.db import models
 
 # Create your models here.
 
+
+class Session(models.Model):
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+
+
+class SensorData(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    hrv = models.FloatField()
+    hr = models.IntegerField()
+    ibi = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.session} - {self.hr} - {self.ibi}"
