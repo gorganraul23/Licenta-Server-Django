@@ -1,5 +1,12 @@
 # Create your views here.
-from django.http import JsonResponse
+import asyncio
+import json
+
+
+from asgiref.sync import async_to_sync
+import websocket
+from channels.layers import get_channel_layer
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -8,12 +15,33 @@ from rest_framework.response import Response
 
 from api.models import Session, SensorData
 from api.serializers import SensorDataSerializer, SessionSerializer
+from server.consumers import SensorDataConsumer
+
+
+##############################################################
+
+@api_view(['POST'])
+def send_sensor_data(request):
+
+    # sensor_data_consumer = SensorDataConsumer()
+    # async_to_sync(sensor_data_consumer.send_message('message'))
+    message = "Hello from Django to Unity!"
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)("unity", {"type": "unity.message", "message": message})
+
+    # asyncio.run(sensor_data_consumer.send('hello'))
+
+    return Response({'success': True})
+
+
+#######################################################################
 
 
 @api_view(['POST'])
 def start_session(request):
     session = Session()
     session.save()
+
     return Response({'session_id': session.id})
 
 
@@ -26,21 +54,24 @@ def end_session(request, id):
 
     session.end_time = timezone.now()
     session.save()
+
     return Response({'session_id': session.id})
 
 
 @api_view(['POST'])
 def save_sensor_data(request):
     session_id = request.data['sessionId']
-    # hr_status = request.data['hrStatus']
     hrv = request.data['hrv']
     hr = request.data['hr']
     ibi = request.data['ibi']
-    # q_ibi = request.data['qIbi']
+
     session = Session.objects.get(id=session_id)
-    # sensor_data = SensorData(session=session, hr_status=hr_status, hr=hr, ibi=ibi, q_ibi=q_ibi)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
     sensor_data.save()
+
+    sensor_data_consumer = SensorDataConsumer()
+    async_to_sync(sensor_data_consumer.send_data({'message': 'Hello, world!'}))
+
     return Response({'success': True})
 
 
@@ -105,7 +136,7 @@ def sensor_data_by_session(request, session):
 @api_view(['GET', 'POST', 'DELETE'])
 def session_list(request):
     if request.method == 'GET':
-        data = Session.objects.all()
+        data = Session.objects.all().order_by('start_time')
         session_serializer = SessionSerializer(data, many=True)
         return Response(session_serializer.data)
 
