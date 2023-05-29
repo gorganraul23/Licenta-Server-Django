@@ -1,7 +1,8 @@
-from django.urls import re_path, path
+from django.urls import re_path
 
-from .consumers import SensorDataConsumer
+from manage import myWSInstance
 
 websocket_urlpatterns = [
-    re_path(r'ws/sensordata/$', SensorDataConsumer.as_asgi()),
+    # path("ws/<str:channel_name>/", AngularConsumer.as_asgi()),
+    re_path(r'ws/sensordata/$', myWSInstance),
 ]

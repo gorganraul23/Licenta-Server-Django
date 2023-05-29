@@ -3,6 +3,10 @@
 import os
 import sys
 
+from server.consumers import SensorDataConsumer
+
+myWSInstance = SensorDataConsumer()
+
 
 def main():
     """Run administrative tasks."""

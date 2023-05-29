@@ -1,12 +1,6 @@
 # Create your views here.
 import asyncio
-import json
 
-
-from asgiref.sync import async_to_sync
-import websocket
-from channels.layers import get_channel_layer
-from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -15,22 +9,14 @@ from rest_framework.response import Response
 
 from api.models import Session, SensorData
 from api.serializers import SensorDataSerializer, SessionSerializer
-from server.consumers import SensorDataConsumer
+from manage import myWSInstance
 
 
 ##############################################################
 
-@api_view(['POST'])
+@api_view(['GET'])
 def send_sensor_data(request):
-
-    # sensor_data_consumer = SensorDataConsumer()
-    # async_to_sync(sensor_data_consumer.send_message('message'))
-    message = "Hello from Django to Unity!"
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)("unity", {"type": "unity.message", "message": message})
-
-    # asyncio.run(sensor_data_consumer.send('hello'))
-
+    asyncio.run(myWSInstance.send_message())
     return Response({'success': True})
 
 
@@ -65,12 +51,11 @@ def save_sensor_data(request):
     hr = request.data['hr']
     ibi = request.data['ibi']
 
-    session = Session.objects.get(id=session_id)
-    sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
-    sensor_data.save()
+    # session = Session.objects.get(id=session_id)
+    # sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
+    # sensor_data.save()
 
-    sensor_data_consumer = SensorDataConsumer()
-    async_to_sync(sensor_data_consumer.send_data({'message': 'Hello, world!'}))
+    asyncio.run(myWSInstance.send_message())
 
     return Response({'success': True})
 
