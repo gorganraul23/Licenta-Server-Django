@@ -14,12 +14,25 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        user = User.objects.get(email=email, password=password)
-        if user is not None:
+        try:
+            user = User.objects.get(email=email, password=password)
+            refresh = RefreshToken.for_user(user)
+            return JsonResponse({'access_token': str(refresh.access_token), 'user_id': user.id},
+                                status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LoginViewWeb(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        try:
+            user = User.objects.get(email=email, password=password)
             refresh = RefreshToken.for_user(user)
             return JsonResponse({'access_token': str(refresh.access_token), 'user_id': user.id})
-        else:
-            return JsonResponse({'error': 'Invalid credentials'}, status=401)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Invalid credentials'})
 
 
 class RegisterView(APIView):
@@ -30,7 +43,7 @@ class RegisterView(APIView):
         if users_serializer.is_valid() and user_dto_serializer.is_valid():
             users_serializer.save()
             return JsonResponse(user_dto_serializer.data, status=status.HTTP_201_CREATED)
-        return JsonResponse(users_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'error': 'Already this email'})
 
 
 @api_view(['GET', 'DELETE'])

@@ -9,23 +9,24 @@ from rest_framework.response import Response
 
 from api.models import Session, SensorData
 from api.serializers import SensorDataSerializer, SessionSerializer
-from manage import myWSInstance
-
-
-##############################################################
-
-@api_view(['GET'])
-def send_sensor_data(request):
-    asyncio.run(myWSInstance.send_message())
-    return Response({'success': True})
-
-
-#######################################################################
+from manage import myWSInstance, myAngularWSInstance
 
 
 @api_view(['POST'])
 def start_session(request):
-    session = Session()
+    session = Session.objects.create()
+    session.save()
+
+    return Response({'session_id': session.id})
+
+
+@api_view(['PUT'])
+def set_ref_value_for_session(request):
+    session_id = request.data["session_id"]
+    reference = request.data["reference"]
+
+    session = Session.objects.get(id=session_id)
+    session.reference = reference
     session.save()
 
     return Response({'session_id': session.id})
@@ -51,11 +52,16 @@ def save_sensor_data(request):
     hr = request.data['hr']
     ibi = request.data['ibi']
 
-    # session = Session.objects.get(id=session_id)
-    # sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
+    session = Session.objects.get(id=session_id)
+    sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
     # sensor_data.save()
+    message = 'Decrease'
+    # message = 'OK'
 
-    asyncio.run(myWSInstance.send_message())
+    if myWSInstance.connected:
+        asyncio.run(myWSInstance.send_message(hr, hrv, message))
+    if myAngularWSInstance.connected:
+        asyncio.run(myAngularWSInstance.send_data(hr, hrv))
 
     return Response({'success': True})
 
@@ -106,7 +112,11 @@ def sensor_data_object(request, id):
 
 
 @api_view(['GET'])
-def sensor_data_by_session(request, session):
+def sensor_data_by_session(request, id):
+    try:
+        session = Session.objects.get(pk=id)
+    except Session.DoesNotExist:
+        return Response({'message': 'The record does not exist'}, status=status.HTTP_404_NOT_FOUND)
     data = SensorData.objects.filter(session=session)
 
     if request.method == 'GET':
@@ -137,3 +147,19 @@ def session_list(request):
         count = SensorData.objects.all().delete()
         return Response({'message': '{} Records were deleted successfully!'.format(count[0])},
                         status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'DELETE'])
+def session_object(request, id):
+    try:
+        session = Session.objects.get(pk=id)
+    except Session.DoesNotExist:
+        return Response({'message': 'The record does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        session_serializer = SessionSerializer(session)
+        return Response(session_serializer.data)
+
+    if request.method == 'DELETE':
+        session.delete()
+        return Response({'message': 'Record was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)

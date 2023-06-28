@@ -168,9 +168,3 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
     'http://localhost:4200'
 )
-
-# RabbitMQ connection settings
-RABBITMQ_HOST = 'sparrow.rmq.cloudamqp.com'  # RabbitMQ hostname or IP address
-RABBITMQ_PORT = 5672  # RabbitMQ port (default: 5672)
-RABBITMQ_USERNAME = 'dzsxuucd'  # RabbitMQ username
-RABBITMQ_PASSWORD = 'UdHVaIc1J3XPrSY35d3DGsGKvEHuyr4g'  # RabbitMQ password

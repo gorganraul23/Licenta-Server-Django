@@ -1,10 +1,12 @@
-
 from django.db import models
 
 # Create your models here.
+from users.models import User
 
 
 class Session(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    reference = models.FloatField(default=0)
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
 

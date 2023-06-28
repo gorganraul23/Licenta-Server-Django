@@ -12,4 +12,4 @@ class SensorDataSerializer(serializers.ModelSerializer):
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
-        fields = ('id', 'start_time', 'end_time')
+        fields = ('id', 'reference', 'start_time', 'end_time')

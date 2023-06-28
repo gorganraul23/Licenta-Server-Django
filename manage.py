@@ -3,9 +3,10 @@
 import os
 import sys
 
-from server.consumers import SensorDataConsumer
+from server.consumers import SensorDataConsumer, AngularConsumer
 
 myWSInstance = SensorDataConsumer()
+myAngularWSInstance = AngularConsumer()
 
 
 def main():
