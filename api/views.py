@@ -1,5 +1,6 @@
 # Create your views here.
 import asyncio
+import datetime
 
 from django.utils import timezone
 from rest_framework import status
@@ -22,8 +23,8 @@ def start_session(request):
 
 @api_view(['PUT'])
 def set_ref_value_for_session(request):
-    session_id = request.data["session_id"]
-    reference = request.data["reference"]
+    session_id = request.data["sessionId"]
+    reference = request.data["hrv"]
 
     session = Session.objects.get(id=session_id)
     session.reference = reference
@@ -55,8 +56,9 @@ def save_sensor_data(request):
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
     # sensor_data.save()
-    message = 'Decrease'
-    # message = 'OK'
+    # message = 'Decrease'
+    message = 'OK'
+    print(datetime.datetime.now())
 
     if myWSInstance.connected:
         asyncio.run(myWSInstance.send_message(hr, hrv, message))
