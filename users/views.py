@@ -47,7 +47,7 @@ class RegisterView(APIView):
 
 
 @api_view(['GET', 'DELETE'])
-def users_list(request):
+def users_all(request):
     if request.method == 'GET':
         users = User.objects.all()
         users_serializer = UserSerializer(users, many=True)
@@ -60,7 +60,7 @@ def users_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def users_detail(request, id):
+def users_by_id(request, id):
     try:
         user = User.objects.get(pk=id)
     except User.DoesNotExist:

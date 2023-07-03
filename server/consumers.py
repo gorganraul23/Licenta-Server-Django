@@ -4,7 +4,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 
 class SensorDataConsumer(AsyncWebsocketConsumer):
-
     connected = False
 
     async def connect(self):
@@ -22,7 +21,6 @@ class SensorDataConsumer(AsyncWebsocketConsumer):
 
 
 class AngularConsumer(AsyncWebsocketConsumer):
-
     connected = False
 
     async def connect(self):

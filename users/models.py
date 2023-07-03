@@ -2,8 +2,6 @@ from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 
-# Create your models here.
-
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -24,7 +22,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
     email = models.EmailField(unique=True, max_length=254)
     name = models.CharField(max_length=30, blank=True)
     is_active = models.BooleanField(default=True)

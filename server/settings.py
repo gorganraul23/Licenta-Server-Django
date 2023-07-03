@@ -26,7 +26,7 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.2', '192.168.1.5', '127.0.0.1', 'localhost', '192.168.0.105', '192.168.130.233',
+ALLOWED_HOSTS = ['192.168.1.2', '192.168.1.5', '127.0.0.1', '192.168.0.105', '192.168.130.233',
                  '192.168.1.4', '192.168.50.111']
 
 # Application definition
@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'channels',
-    'channels_redis',
 ]
 
 MIDDLEWARE = [
@@ -88,13 +87,6 @@ ASGI_APPLICATION = 'server.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DATABASES = {
     'default': {
@@ -163,8 +155,6 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
-    'http://localhost:8080',
-    'http://localhost:4200'
+    'http://localhost:4200',
 )

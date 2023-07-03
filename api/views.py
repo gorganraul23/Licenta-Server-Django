@@ -1,6 +1,5 @@
 # Create your views here.
 import asyncio
-import datetime
 
 from django.utils import timezone
 from rest_framework import status
@@ -11,18 +10,21 @@ from rest_framework.response import Response
 from api.models import Session, SensorData
 from api.serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
+from users.models import User
 
 
 @api_view(['POST'])
-def start_session(request):
+def start_session(request, id):
     session = Session.objects.create()
+    user = User.objects.get(pk=id)
+    session.user = user
     session.save()
 
     return Response({'session_id': session.id})
 
 
 @api_view(['PUT'])
-def set_ref_value_for_session(request):
+def set_ref_hrv_for_session(request):
     session_id = request.data["sessionId"]
     reference = request.data["hrv"]
 
@@ -55,10 +57,11 @@ def save_sensor_data(request):
 
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
-    # sensor_data.save()
+    if session.reference != 0:
+        sensor_data.save()
     # message = 'Decrease'
     message = 'OK'
-    print(datetime.datetime.now())
+    print(ibi)
 
     if myWSInstance.connected:
         asyncio.run(myWSInstance.send_message(hr, hrv, message))
@@ -69,7 +72,7 @@ def save_sensor_data(request):
 
 
 @api_view(['GET', 'POST', 'DELETE'])
-def sensor_data_list(request):
+def sensor_data_all(request):
     if request.method == 'GET':
         data = SensorData.objects.all()
         sensor_data_serializer = SensorDataSerializer(data, many=True)
@@ -90,7 +93,7 @@ def sensor_data_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def sensor_data_object(request, id):
+def sensor_data_by_id(request, id):
     try:
         sensor_data = SensorData.objects.get(pk=id)
     except SensorData.DoesNotExist:
@@ -113,12 +116,12 @@ def sensor_data_object(request, id):
         return Response({'message': 'Record was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def sensor_data_by_session(request, id):
     try:
         session = Session.objects.get(pk=id)
     except Session.DoesNotExist:
-        return Response({'message': 'The record does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': 'The session does not exist'}, status=status.HTTP_404_NOT_FOUND)
     data = SensorData.objects.filter(session=session)
 
     if request.method == 'GET':
@@ -131,7 +134,7 @@ def sensor_data_by_session(request, id):
 
 
 @api_view(['GET', 'POST', 'DELETE'])
-def session_list(request):
+def session_all(request):
     if request.method == 'GET':
         data = Session.objects.all().order_by('start_time')
         session_serializer = SessionSerializer(data, many=True)
@@ -152,11 +155,11 @@ def session_list(request):
 
 
 @api_view(['GET', 'DELETE'])
-def session_object(request, id):
+def session_by_id(request, id):
     try:
         session = Session.objects.get(pk=id)
     except Session.DoesNotExist:
-        return Response({'message': 'The record does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': 'The session does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         session_serializer = SessionSerializer(session)
