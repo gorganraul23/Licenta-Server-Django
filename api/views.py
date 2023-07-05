@@ -12,6 +12,8 @@ from api.serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
 from users.models import User
 
+number_of_lower = 0
+
 
 @api_view(['POST'])
 def start_session(request, id):
@@ -50,18 +52,29 @@ def end_session(request, id):
 
 @api_view(['POST'])
 def save_sensor_data(request):
+    global number_of_lower
+
     session_id = request.data['sessionId']
     hrv = request.data['hrv']
     hr = request.data['hr']
     ibi = request.data['ibi']
+    message = ''
 
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
     if session.reference != 0:
         sensor_data.save()
-    # message = 'Decrease'
-    message = 'OK'
-    print(ibi)
+
+        if session.reference - hrv >= 20.0:
+            number_of_lower += 1
+        else:
+            number_of_lower = 0
+
+        if number_of_lower == 10:
+            message = 'Decrease'
+            number_of_lower = 0
+        else:
+            message = 'OK'
 
     if myWSInstance.connected:
         asyncio.run(myWSInstance.send_message(hr, hrv, message))
@@ -123,6 +136,7 @@ def sensor_data_by_session(request, id):
     except Session.DoesNotExist:
         return Response({'message': 'The session does not exist'}, status=status.HTTP_404_NOT_FOUND)
     data = SensorData.objects.filter(session=session)
+    data = data.order_by('timestamp')
 
     if request.method == 'GET':
         sensor_data_serializer = SensorDataSerializer(data, many=True)
@@ -136,7 +150,7 @@ def sensor_data_by_session(request, id):
 @api_view(['GET', 'POST', 'DELETE'])
 def session_all(request):
     if request.method == 'GET':
-        data = Session.objects.all().order_by('start_time')
+        data = Session.objects.all().order_by('-start_time')
         session_serializer = SessionSerializer(data, many=True)
         return Response(session_serializer.data)
 
