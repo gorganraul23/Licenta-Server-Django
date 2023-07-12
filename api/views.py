@@ -58,7 +58,7 @@ def save_sensor_data(request):
     hrv = request.data['hrv']
     hr = request.data['hr']
     ibi = request.data['ibi']
-    message = ''
+    message = 'OK'
 
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
@@ -70,7 +70,7 @@ def save_sensor_data(request):
         else:
             number_of_lower = 0
 
-        if number_of_lower == 10:
+        if number_of_lower == 5:
             message = 'Decrease'
             number_of_lower = 0
         else:
