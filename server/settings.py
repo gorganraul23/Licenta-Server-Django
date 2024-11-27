@@ -26,8 +26,8 @@ SECRET_KEY = get_random_secret_key()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.2', '192.168.1.5', '127.0.0.1', '192.168.0.105', '192.168.156.233',
-                 '192.168.1.4', '192.168.50.111']
+ALLOWED_HOSTS = ['192.168.1.2', '192.168.1.5', '127.0.0.1', '192.168.1.5', '192.168.156.233',
+                 '192.168.1.4', '192.168.172.233', '192.168.10.237', '192.168.1.12', '192.168.50.12']
 
 # Application definition
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
+    'experiment.apps.ExperimentConfig',
     'channels',
 ]
 
@@ -147,12 +148,21 @@ REST_FRAMEWORK = {
 }
 
 # JWT token settings
-JWT_AUTH = {
-    'JWT_SECRET_KEY': SECRET_KEY,
-    'JWT_ALGORITHM': 'HS256',
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+# JWT_AUTH = {
+#     'JWT_SECRET_KEY': SECRET_KEY,
+#     'JWT_ALGORITHM': 'HS256',
+#     # 'JWT_ALLOW_REFRESH': True,
+#     # 'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+#     # 'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+# }
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),  # Access token expires after 15 minutes
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 CORS_ORIGIN_WHITELIST = (

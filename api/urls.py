@@ -1,7 +1,7 @@
 from django.urls import path
 
-from api.views import save_sensor_data, start_session, sensor_data_all, sensor_data_by_session, \
-    sensor_data_by_id, end_session, session_all, session_by_id, set_ref_hrv_for_session
+from .views import save_sensor_data, start_session, sensor_data_all, sensor_data_by_session, \
+    sensor_data_by_id, end_session, session_all, session_by_id, set_ref_hrv_for_session, session_running
 
 urlpatterns = [
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('sensor-data', sensor_data_all),
     path('sensor-data/<int:id>/', sensor_data_by_id),
 
+    path('session/running', session_running),
 ]

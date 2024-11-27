@@ -7,8 +7,8 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
-from api.models import Session, SensorData
-from api.serializers import SensorDataSerializer, SessionSerializer
+from .models import Session, SensorData
+from .serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
 from users.models import User
 
@@ -62,19 +62,19 @@ def save_sensor_data(request):
 
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
-    if session.reference != 0:
-        sensor_data.save()
+    # if session.reference != 0:
+    sensor_data.save()
 
-        if session.reference - hrv >= 20.0:
-            number_of_lower += 1
-        else:
-            number_of_lower = 0
+    if session.reference - hrv >= 20.0:
+        number_of_lower += 1
+    else:
+        number_of_lower = 0
 
-        if number_of_lower == 5:
-            message = 'Decrease'
-            number_of_lower = 0
-        else:
-            message = 'OK'
+    if number_of_lower == 5:
+        message = 'Decrease'
+        number_of_lower = 0
+    else:
+        message = 'OK'
 
     if myWSInstance.connected:
         asyncio.run(myWSInstance.send_message(hr, hrv, message))
@@ -182,3 +182,16 @@ def session_by_id(request, id):
     if request.method == 'DELETE':
         session.delete()
         return Response({'message': 'Record was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+def session_running(request):
+    if request.method == 'GET':
+        try:
+            session = Session.objects.get(end_time__isnull=True)
+            session_serializer = SessionSerializer(session)
+            return Response(session_serializer.data)
+        except Session.DoesNotExist:
+            return Response({'error': 'No active session found.'}, status=404)
+        except Session.MultipleObjectsReturned:
+            return Response({'error': 'Multiple active sessions found.'}, status=400)
