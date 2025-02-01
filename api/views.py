@@ -7,10 +7,11 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
-from .models import Session, SensorData
+from .models import Session, SensorData, PpgGreenData
 from .serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
 from users.models import User
+from experiment.models import Experiment
 
 number_of_lower = 0
 
@@ -58,10 +59,12 @@ def save_sensor_data(request):
     hrv = request.data['hrv']
     hr = request.data['hr']
     ibi = request.data['ibi']
+    ibi_status = request.data['ibiStatus']
     message = 'OK'
+    print(ibi_status)
 
     session = Session.objects.get(id=session_id)
-    sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi)
+    sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi, ibiStatus=ibi_status)
     # if session.reference != 0:
     sensor_data.save()
 
@@ -80,6 +83,23 @@ def save_sensor_data(request):
         asyncio.run(myWSInstance.send_message(hr, hrv, message))
     if myAngularWSInstance.connected:
         asyncio.run(myAngularWSInstance.send_data(hr, hrv))
+
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+def save_ppg_green_data(request):
+    session_id = request.data['sessionId']
+    ppg_values = request.data['ppgValues']
+
+    try:
+        session = Session.objects.get(id=session_id)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=400)
+
+    print(f"Received {len(ppg_values)} PPG values")
+    for value in ppg_values:
+        PpgGreenData.objects.create(session=session, ppg_value=value)
 
     return Response({'success': True})
 
@@ -150,7 +170,12 @@ def sensor_data_by_session(request, id):
 @api_view(['GET', 'POST', 'DELETE'])
 def session_all(request):
     if request.method == 'GET':
-        data = Session.objects.all().order_by('-start_time')
+        user = request.user
+        if user.is_superuser:
+            data = Session.objects.all().order_by('-start_time')
+        else:
+            data = Session.objects.filter(user=user).order_by('-start_time')
+
         session_serializer = SessionSerializer(data, many=True)
         return Response(session_serializer.data)
 
@@ -187,11 +212,15 @@ def session_by_id(request, id):
 @api_view(['GET'])
 def session_running(request):
     if request.method == 'GET':
-        try:
-            session = Session.objects.get(end_time__isnull=True)
+        user = request.user
+        session = Session.objects.filter(user=user, end_time__isnull=True).first()
+
+        if session:
             session_serializer = SessionSerializer(session)
+            experiment = Experiment.objects.filter(session=session, user=user)
+            if experiment:
+                experiment.delete()
+            Experiment.objects.get_or_create(session=session, user=user)
             return Response(session_serializer.data)
-        except Session.DoesNotExist:
+        else:
             return Response({'error': 'No active session found.'}, status=404)
-        except Session.MultipleObjectsReturned:
-            return Response({'error': 'Multiple active sessions found.'}, status=400)

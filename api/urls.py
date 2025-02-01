@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import save_sensor_data, start_session, sensor_data_all, sensor_data_by_session, \
-    sensor_data_by_id, end_session, session_all, session_by_id, set_ref_hrv_for_session, session_running
+    sensor_data_by_id, end_session, session_all, session_by_id, set_ref_hrv_for_session, session_running, \
+    save_ppg_green_data
 
 urlpatterns = [
 
@@ -13,6 +14,7 @@ urlpatterns = [
     path('session/<int:id>/', session_by_id),
 
     path('save-sensor-data', save_sensor_data),
+    path('save-ppg-green-data', save_ppg_green_data),
 
     path('sensor-data/session/<int:id>/', sensor_data_by_session),
     path('sensor-data', sensor_data_all),

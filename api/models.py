@@ -15,7 +15,14 @@ class SensorData(models.Model):
     hrv = models.FloatField()
     hr = models.IntegerField()
     ibi = models.IntegerField()
+    ibiStatus = models.IntegerField(default=404)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+class PpgGreenData(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    ppg_value = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.session} - {self.hr} - {self.ibi}"
+        return f"{self.session} - {self.ppg_value} - {self.timestamp}"

@@ -30,7 +30,9 @@ class LoginViewWeb(APIView):
         try:
             user = User.objects.get(email=email, password=password)
             refresh = RefreshToken.for_user(user)
-            return JsonResponse({'access_token': str(refresh.access_token), 'user_id': user.id})
+            return JsonResponse({'access_token': str(refresh.access_token),
+                                 'user_id': user.id,
+                                 'is_superuser': user.is_superuser})
         except User.DoesNotExist:
             return JsonResponse({'error': 'Invalid credentials'})
 
