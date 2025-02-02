@@ -13,6 +13,7 @@ class Session(models.Model):
 class SensorData(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     hrv = models.FloatField()
+    hrvWithInvalid = models.FloatField(default=0.0)
     hr = models.IntegerField()
     ibi = models.IntegerField()
     ibiStatus = models.IntegerField(default=404)

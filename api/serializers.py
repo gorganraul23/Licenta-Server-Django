@@ -6,7 +6,7 @@ from .models import SensorData, Session
 class SensorDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SensorData
-        fields = ('id', 'session', 'hrv', 'hr', 'ibi', 'timestamp')
+        fields = ('id', 'session', 'hrv', 'hrvWithInvalid', 'hr', 'ibi', 'timestamp')
 
 
 User = get_user_model()

@@ -57,14 +57,20 @@ def save_sensor_data(request):
 
     session_id = request.data['sessionId']
     hrv = request.data['hrv']
+    hrv_with_invalid = request.data['hrvWithInvalid']
     hr = request.data['hr']
     ibi = request.data['ibi']
     ibi_status = request.data['ibiStatus']
-    message = 'OK'
+
     print(ibi_status)
 
     session = Session.objects.get(id=session_id)
-    sensor_data = SensorData(session=session, hrv=hrv, hr=hr, ibi=ibi, ibiStatus=ibi_status)
+    sensor_data = SensorData(session=session,
+                             hrv=hrv,
+                             hrvWithInvalid=hrv_with_invalid,
+                             hr=hr,
+                             ibi=ibi,
+                             ibiStatus=ibi_status)
     # if session.reference != 0:
     sensor_data.save()
 
@@ -224,3 +230,11 @@ def session_running(request):
             return Response(session_serializer.data)
         else:
             return Response({'error': 'No active session found.'}, status=404)
+
+
+@api_view(['GET'])
+def ping_ip_address(request):
+    if request.method == 'GET':
+        return Response({'reachable': True}, status=200)
+
+
