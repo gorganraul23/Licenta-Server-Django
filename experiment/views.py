@@ -2,7 +2,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from .models import Experiment
 from .serializers import ExperimentDataSerializer
+from api.models import Session
 
 
 @api_view(['POST'])
@@ -21,3 +23,19 @@ def save_experiment_response(request):
             experiment_serializer.save()
             return Response(True, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def save_experiment_start_time(request):
+    if request.method == 'POST':
+        user = request.user
+        session = Session.objects.filter(user=user, end_time__isnull=True).first()
+
+        if session:
+            experiment = Experiment.objects.filter(session=session, user=user)
+            if experiment:
+                experiment.delete()
+            Experiment.objects.get_or_create(session=session, user=user)
+            return Response(True, status=200)
+        else:
+            return Response(False, status=404)
