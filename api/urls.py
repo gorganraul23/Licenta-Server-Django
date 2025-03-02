@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import save_sensor_data, start_session, sensor_data_all, sensor_data_by_session, \
     sensor_data_by_id, end_session, session_all, session_by_id, set_ref_hrv_for_session, session_running, \
-    save_ppg_green_data, ping_ip_address, save_ppg_red_data, save_ppg_ir_data
+    save_ppg_green_data, ping_ip_address, save_ppg_red_data, save_ppg_ir_data, save_skin_temperature_data
 
 urlpatterns = [
 
@@ -17,6 +17,7 @@ urlpatterns = [
     path('save-ppg-green-data', save_ppg_green_data),
     path('save-ppg-red-data', save_ppg_red_data),
     path('save-ppg-ir-data', save_ppg_ir_data),
+    path('save-skin-temperature-data', save_skin_temperature_data),
 
     path('sensor-data/session/<int:id>/', sensor_data_by_session),
     path('sensor-data', sensor_data_all),

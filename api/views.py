@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
-from .models import Session, SensorData, PpgGreenData, PpgRedData, PpgIrData
+from .models import Session, SensorData, PpgGreenData, PpgRedData, PpgIrData, SkinTemperatureData
 from .serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
 from users.models import User
@@ -62,8 +62,6 @@ def save_sensor_data(request):
     ibi_old = request.data.get('ibiOld')
     ibi_list = request.data.get('ibiList', [])
     ibi_status_list = request.data.get('ibiStatusList', [])
-
-    # print(ibi_old + ', ' + ibi_list + ', ' + ibi_status_list)
 
     ibi_list = (ibi_list + [None, None, None, None])[:4]
     ibi_status_list = (ibi_status_list + [None, None, None, None])[:4]
@@ -154,6 +152,29 @@ def save_ppg_ir_data(request):
     print(f"Received {len(ppg_values)} PPG values")
     ppg_entries = [PpgIrData(session=session, ppg_value=value) for value in ppg_values]
     PpgIrData.objects.bulk_create(ppg_entries)
+
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+def save_skin_temperature_data(request):
+    session_id = request.data['sessionId']
+    object_temperature = request.data.get('ambientTemperature')
+    ambient_temperature = request.data.get('ambientTemperature')
+    status_temperature = request.data.get('status')
+
+    try:
+        session = Session.objects.get(id=session_id)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=400)
+
+    print(f"Received {object_temperature} temperature")
+
+    skin_temperature = SkinTemperatureData(session=session,
+                                           objectTemperature=object_temperature,
+                                           ambientTemperature= ambient_temperature,
+                                           status=status_temperature)
+    skin_temperature.save()
 
     return Response({'success': True})
 

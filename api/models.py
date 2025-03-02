@@ -55,3 +55,11 @@ class PpgIrData(models.Model):
 
     def __str__(self):
         return f"{self.session} - {self.ppg_value} - {self.timestamp}"
+
+
+class SkinTemperatureData(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    objectTemperature = models.FloatField()
+    ambientTemperature = models.FloatField()
+    status = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
