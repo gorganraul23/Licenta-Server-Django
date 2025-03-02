@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
-from .models import Session, SensorData, PpgGreenData
+from .models import Session, SensorData, PpgGreenData, PpgRedData, PpgIrData
 from .serializers import SensorDataSerializer, SessionSerializer
 from manage import myWSInstance, myAngularWSInstance
 from users.models import User
@@ -59,18 +59,32 @@ def save_sensor_data(request):
     hrv = request.data['hrv']
     hrv_with_invalid = request.data['hrvWithInvalid']
     hr = request.data['hr']
-    ibi = request.data['ibi']
-    ibi_status = request.data['ibiStatus']
+    ibi_old = request.data.get('ibiOld')
+    ibi_list = request.data.get('ibiList', [])
+    ibi_status_list = request.data.get('ibiStatusList', [])
 
-    print(ibi_status)
+    # print(ibi_old + ', ' + ibi_list + ', ' + ibi_status_list)
+
+    ibi_list = (ibi_list + [None, None, None, None])[:4]
+    ibi_status_list = (ibi_status_list + [None, None, None, None])[:4]
+
+    # Debugging print
+    print(f"ibi_old: {ibi_old}, ibi_list: {ibi_list}, ibi_status_list: {ibi_status_list}")
 
     session = Session.objects.get(id=session_id)
     sensor_data = SensorData(session=session,
                              hrv=hrv,
                              hrvWithInvalid=hrv_with_invalid,
                              hr=hr,
-                             ibi=ibi,
-                             ibiStatus=ibi_status)
+                             ibiOld=ibi_old,
+                             ibi0=ibi_list[0],
+                             ibi1=ibi_list[1],
+                             ibi2=ibi_list[2],
+                             ibi3=ibi_list[3],
+                             ibiStatus0=ibi_status_list[0],
+                             ibiStatus1=ibi_status_list[1],
+                             ibiStatus2=ibi_status_list[2],
+                             ibiStatus3=ibi_status_list[3])
     # if session.reference != 0:
     sensor_data.save()
 
@@ -103,9 +117,43 @@ def save_ppg_green_data(request):
     except Session.DoesNotExist:
         return Response({'error': 'Session not found'}, status=400)
 
+    # print(f"Received {len(ppg_values)} PPG values")
+    ppg_entries = [PpgGreenData(session=session, ppg_value=value) for value in ppg_values]
+    PpgGreenData.objects.bulk_create(ppg_entries)
+
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+def save_ppg_red_data(request):
+    session_id = request.data['sessionId']
+    ppg_values = request.data['ppgValues']
+
+    try:
+        session = Session.objects.get(id=session_id)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=400)
+
+    # print(f"Received {len(ppg_values)} PPG values")
+    ppg_entries = [PpgRedData(session=session, ppg_value=value) for value in ppg_values]
+    PpgRedData.objects.bulk_create(ppg_entries)
+
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+def save_ppg_ir_data(request):
+    session_id = request.data['sessionId']
+    ppg_values = request.data['ppgValues']
+
+    try:
+        session = Session.objects.get(id=session_id)
+    except Session.DoesNotExist:
+        return Response({'error': 'Session not found'}, status=400)
+
     print(f"Received {len(ppg_values)} PPG values")
-    for value in ppg_values:
-        PpgGreenData.objects.create(session=session, ppg_value=value)
+    ppg_entries = [PpgIrData(session=session, ppg_value=value) for value in ppg_values]
+    PpgIrData.objects.bulk_create(ppg_entries)
 
     return Response({'success': True})
 

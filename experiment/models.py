@@ -20,6 +20,7 @@ class Experiment(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    endTimestamp = models.DateTimeField(null=True, blank=True)
 
 
 class ExperimentCorrectAnswers(models.Model):

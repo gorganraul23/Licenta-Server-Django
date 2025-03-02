@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -37,5 +39,21 @@ def save_experiment_start_time(request):
                 experiment.delete()
             Experiment.objects.get_or_create(session=session, user=user)
             return Response(True, status=200)
+        else:
+            return Response(False, status=404)
+
+
+@api_view(['POST'])
+def save_experiment_end_time(request):
+    if request.method == 'POST':
+        user = request.user
+        session = Session.objects.filter(user=user, end_time__isnull=True).first()
+
+        if session:
+            updated_rows = Experiment.objects.filter(session=session, user=user).update(endTimestamp=timezone.now())
+            if updated_rows > 0:
+                return Response(True, status=200)
+            else:
+                return Response(False, status=404)
         else:
             return Response(False, status=404)
